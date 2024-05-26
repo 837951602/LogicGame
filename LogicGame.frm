@@ -2,7 +2,7 @@ VERSION 5.00
 Begin VB.Form Form1 
    AutoRedraw      =   -1  'True
    BorderStyle     =   1  'Fixed Single
-   Caption         =   "Form1"
+   Caption         =   "LogicGame"
    ClientHeight    =   3090
    ClientLeft      =   150
    ClientTop       =   840
@@ -47,6 +47,9 @@ Begin VB.Form Form1
    Begin VB.Menu BtnExport 
       Caption         =   "导出(&E)"
    End
+   Begin VB.Menu BtnExportBmp 
+      Caption         =   "导出图片(&X)"
+   End
 End
 Attribute VB_Name = "Form1"
 Attribute VB_GlobalNameSpace = False
@@ -81,8 +84,14 @@ Clipboard.SetText Str
 MsgBox "已导出到剪贴板"
 End Sub
 
+Private Sub BtnExportBmp_Click()
+Clipboard.Clear
+Clipboard.SetData Picture1.Image
+End Sub
+
 Private Sub BtnImport_Click()
 Dim Str$, i&, j&, e&
+If Clipboard.GetFormat(1) Then ' String
 Str = Clipboard.GetText
 If Len(Str) <> 2500 Then
     MsgBox "存档不合法"
@@ -102,6 +111,17 @@ For i = 0 To 99
         Board(i, j * 4 + 3) = e Mod 3
     Next
 Next
+ElseIf Clipboard.GetFormat(2) Then 'Bitmap
+Picture1.PaintPicture Clipboard.GetData, 0, 0
+For i = 0 To 99
+    For j = 0 To 99
+        e = Picture1.Point(j, i)
+        Board(i, j) = IIf(e And &H8000&, 0, IIf(e And &H80&, 2, 1))
+    Next
+Next
+Else
+MsgBox "格式无效"
+End If
 Timer1 = True
 End Sub
 
@@ -149,7 +169,7 @@ If Button = 2 Then
     For i = 0 To 1 Step 0.01 * (1 + Shift * 2)
         For j = Int(Y) - Shift To Int(Y) + Shift
             For k = Int(X) - Shift To Int(X) + Shift
-                If Y >= 0 And Y < 100 And X >= 0 And X < 100 Then
+                If j >= 0 And j < 100 And k >= 0 And k < 100 Then
                     Board(j, k) = 0
                 End If
             Next
@@ -239,10 +259,25 @@ End Sub
 
 Sub Redraw()
 Debug.Print 1, Timer
-Dim i&, j&
+Dim i&, j&, c&
 For i = 0 To 99
     For j = 0 To 99
-        Picture1.PSet (j, i), Choose(1 + Board(i, j), IIf(i + j And 1, &HFFCCFF, &HCCFFCC), vbBlack, vbRed)
+        Select Case Board(i, j)
+        Case 0
+            Select Case NeighborC(i, j)
+            Case 15
+                c = &HFFFF00
+            Case 14, 13, 11, 7
+                c = &HCC00&
+            Case Else
+                c = IIf(i + j And 1, &HFFCCFF, &HCCFFCC)
+            End Select
+        Case 1
+            c = vbBlack
+        Case 2
+            c = vbRed
+        End Select
+        Picture1.PSet (j, i), c
     Next
 Next
 Debug.Print 2, Timer
