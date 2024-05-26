@@ -6,7 +6,7 @@ Build logic with XOR gates!
 
 Use LMB to draw wire or change wire state. Use RMB to erase. Modifier keys can extend erasing range.
 
-You can clear and import/export(clipboard) board using three buttons on menu bar.
+You can clear, import, export as text, export as image (from/to clipboard) board using buttons on menu bar.
 
 # Logic
 
